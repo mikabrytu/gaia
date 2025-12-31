@@ -29,25 +29,40 @@ func settings() {
 }
 
 func scene() {
-	var grid = math.Vector2{X: 10, Y: 10}
-	var rect = utils.RectSpecs{
-		PosX:   0,
-		PosY:   0,
-		Width:  32,
-		Height: 32,
-	}
+	grid := math.Vector2{X: 10, Y: 10}
 
 	for x := 0; x < grid.X; x++ {
 		for y := 0; y < grid.Y; y++ {
-			lifecycle.Register(&lifecycle.GameObject{
-				Render: func() {
-					r := rect
-					r.PosX = x * (rect.Width + 8)
-					r.PosY = y * (rect.Height + 8)
-
-					render.DrawRect(r, render.Yellow)
-				},
-			})
+			tile(x, y)
 		}
 	}
+}
+
+func tile(x int, y int) {
+	size := 32
+	offset := 8
+
+	rect := utils.RectSpecs{
+		PosX:   x * (size + offset),
+		PosY:   y * (size + offset),
+		Width:  size,
+		Height: size,
+	}
+
+	color := render.Yellow
+
+	lifecycle.Register(&lifecycle.GameObject{
+		Start: func() {
+			events.Subscribe(events.Input, events.INPUT_MOUSE_CLICK_DOWN, func(data any) {
+				click := data.(events.InputMouseClickDownEvent)
+
+				if (click.Position.X > rect.PosX && click.Position.X < (rect.PosX+rect.Width)) && (click.Position.Y > rect.PosY && click.Position.Y < (rect.PosY+rect.Height)) {
+					color = render.Green
+				}
+			})
+		},
+		Render: func() {
+			render.DrawRect(rect, color)
+		},
+	})
 }
