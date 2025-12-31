@@ -1,13 +1,17 @@
 package main
 
 import (
+	"math"
+
 	gomesengine "github.com/mikabrytu/gomes-engine"
 	"github.com/mikabrytu/gomes-engine/events"
 	"github.com/mikabrytu/gomes-engine/lifecycle"
-	"github.com/mikabrytu/gomes-engine/math"
+	gomesmath "github.com/mikabrytu/gomes-engine/math"
 	"github.com/mikabrytu/gomes-engine/render"
 	"github.com/mikabrytu/gomes-engine/utils"
 )
+
+var player_tiles []gomesmath.Vector2
 
 func main() {
 	gomesengine.Init("Gaia", 800, 600)
@@ -29,7 +33,7 @@ func settings() {
 }
 
 func scene() {
-	grid := math.Vector2{X: 10, Y: 10}
+	grid := gomesmath.Vector2{X: 10, Y: 10}
 
 	for x := 0; x < grid.X; x++ {
 		for y := 0; y < grid.Y; y++ {
@@ -57,7 +61,9 @@ func tile(x int, y int) {
 				click := data.(events.InputMouseClickDownEvent)
 
 				if (click.Position.X > rect.PosX && click.Position.X < (rect.PosX+rect.Width)) && (click.Position.Y > rect.PosY && click.Position.Y < (rect.PosY+rect.Height)) {
-					color = render.Green
+					if try_add_tile(gomesmath.Vector2{X: x, Y: y}) {
+						color = render.Green
+					}
 				}
 			})
 		},
@@ -65,4 +71,24 @@ func tile(x int, y int) {
 			render.DrawRect(rect, color)
 		},
 	})
+}
+
+func try_add_tile(position gomesmath.Vector2) bool {
+	if player_tiles == nil {
+		player_tiles = make([]gomesmath.Vector2, 1)
+		player_tiles[0] = position
+		return true
+	}
+
+	for _, tile := range player_tiles {
+		if math.Abs(float64(tile.X-position.X)) > 1 || math.Abs(float64(tile.Y-position.Y)) > 1 {
+			continue
+		} else {
+			player_tiles = append(player_tiles, position)
+			return true
+		}
+	}
+
+	println("Tile is not adjacent to player collection")
+	return false
 }
