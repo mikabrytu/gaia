@@ -11,7 +11,13 @@ import (
 	"github.com/mikabrytu/gomes-engine/utils"
 )
 
-var player_tiles []gomesmath.Vector2
+type Tile struct {
+	Position gomesmath.Vector2
+	Owner    int
+	Health   int
+}
+
+var player_tiles []Tile
 
 func main() {
 	gomesengine.Init("Gaia", 800, 600)
@@ -29,6 +35,10 @@ func game() {
 func settings() {
 	events.Subscribe(events.Input, events.INPUT_KEYBOARD_PRESSED_ESCAPE, func(data any) {
 		lifecycle.Kill()
+	})
+
+	events.Subscribe(events.Input, events.INPUT_KEYBOARD_PRESSED_SPACE, func(data any) {
+		debug_player_tiles()
 	})
 }
 
@@ -75,20 +85,37 @@ func tile(x int, y int) {
 
 func try_add_tile(position gomesmath.Vector2) bool {
 	if player_tiles == nil {
-		player_tiles = make([]gomesmath.Vector2, 1)
-		player_tiles[0] = position
+		player_tiles = make([]Tile, 1)
+		player_tiles[0] = Tile{
+			Position: position,
+			Owner:    1,
+			Health:   1,
+		}
+
 		return true
 	}
 
+	message := ""
+
 	for _, tile := range player_tiles {
-		if math.Abs(float64(tile.X-position.X)) > 1 || math.Abs(float64(tile.Y-position.Y)) > 1 {
+		if tile.Position == position {
+			message = "it's already registered"
+			continue
+		}
+
+		if math.Abs(float64(tile.Position.X-position.X)) > 1 || math.Abs(float64(tile.Position.Y-position.Y)) > 1 {
+			message = "is not adjacent to current collection"
 			continue
 		} else {
-			player_tiles = append(player_tiles, position)
+			player_tiles = append(player_tiles, Tile{
+				Position: position,
+				Owner:    1,
+				Health:   1,
+			})
 			return true
 		}
 	}
 
-	println("Tile is not adjacent to player collection")
+	println("Tile cannot be added to player collection because", message)
 	return false
 }
